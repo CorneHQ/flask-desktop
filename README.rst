@@ -31,7 +31,8 @@ flask-desktop is powered by PyQt5, and should run on Windows, Mac and Linux. You
 Parameters:
 -------
 ::
-init_gui(application, port=5000, width=300, height=400, window_title="PyFladesk", icon="appicon.png", argv=None)
+
+    init_gui(application, port=5000, width=300, height=400, window_title="PyFladesk", icon="appicon.png", argv=None)
 
 License
 -------
