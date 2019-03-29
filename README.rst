@@ -15,7 +15,7 @@ Usage:
 ------
 ::
 
-    from webui import WebUI # Add WebUI to your imports
+    from webui import init_gui # Add WebUI to your imports
     from flask import Flask, render_template, request
     
     app = Flask(__name__)
