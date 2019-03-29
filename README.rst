@@ -28,6 +28,11 @@ Usage:
 
 flask-desktop is powered by PyQt5, and should run on Windows, Mac and Linux. You can even create standalone executables using PyInstaller!
 
+Parameters:
+-------
+::
+init_gui(application, port=5000, width=300, height=400, window_title="PyFladesk", icon="appicon.png", argv=None)
+
 License
 -------
 flask-desktop is licensed under the MIT License. See the LICENSE file for more details.
