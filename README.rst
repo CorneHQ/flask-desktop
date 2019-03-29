@@ -15,16 +15,15 @@ Usage:
 ------
 ::
 
-    from webui import init_gui # Add WebUI to your imports
+    from webui import init_gui 
     from flask import Flask, render_template, request
     
     app = Flask(__name__)
-    ui = WebUI(app, debug=True) # Create a WebUI instance
 
-    # all of your standard flask logic
+    # FLASK HERE
 
     if __name__ == '__main__':
-      ui.run() #replace app.run() with ui.run(), and that's it
+      init_gui(app)
 
 
 flask-desktop is powered by PyQt5, and should run on Windows, Mac and Linux. You can even create standalone executables using PyInstaller!
