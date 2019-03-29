@@ -1,54 +1,63 @@
-from threading import Thread
-
-import PyQt5.QtCore as core
-import PyQt5.QtWidgets as core_widgets
-import PyQt5.QtWebEngine as web_engine
-import PyQt5.QtWebEngineWidgets as web_widgets
+import sys
+from PyQt5 import QtCore, QtWidgets, QtGui, QtWebEngineWidgets
 
 
-default_url = "127.0.0.1"
+class ApplicationThread(QtCore.QThread):
+    def __init__(self, application, port=5000):
+        super(ApplicationThread, self).__init__()
+        self.application = application
+        self.port = port
 
-
-class WebUI(object):
-    def __init__(self, app, url=default_url, port=5000,
-                 debug=False, using_win32=False):
-        self.flask_app = app
-        self.flask_thread = Thread(target=self._run_flask,
-                                   args=(url, port, debug, using_win32))
-        self.flask_thread.daemon = True
-        self.debug = debug
-
-        self.url = "http://{}:{}".format(url, port)
-        self.app = core_widgets.QApplication([])
-        self.view = web_widgets.QWebEngineView(self.app.activeModalWidget())
+    def __del__(self):
+        self.wait()
 
     def run(self):
-        self.run_flask()
-        self.run_gui()
+        self.application.run(port=self.port, threaded=True)
 
-    def run_flask(self):
-        self.flask_thread.start()
 
-    def run_gui(self):
-        self.view.load(core.QUrl(self.url))
+class WebPage(QtWebEngineWidgets.QWebEnginePage):
+    def __init__(self, root_url):
+        super(WebPage, self).__init__()
+        self.root_url = root_url
 
-        change_setting = self.view.page().settings().setAttribute
-        settings = web_widgets.QWebEngineSettings
-        change_setting(settings.LocalStorageEnabled, True)
-        change_setting(settings.PluginsEnabled, True)
+    def home(self):
+        self.load(QtCore.QUrl(self.root_url))
 
-        # TODO: These settings aren't implemented in QWebEngineSettings (yet)
-        #change_setting(settings.DeveloperExtrasEnabled, True)
-        #change_setting(settings.OfflineStorageDatabaseEnabled, True)
-        #change_setting(settings.OfflineWebApplicationCacheEnabled, True)
+    def acceptNavigationRequest(self, url, kind, is_main_frame):
+        """Open external links in browser and internal links in the webview"""
+        ready_url = url.toEncoded().data().decode()
+        is_clicked = kind == self.NavigationTypeLinkClicked
+        if is_clicked and self.root_url not in ready_url:
+            QtGui.QDesktopServices.openUrl(url)
+            return False
+        return super(WebPage, self).acceptNavigationRequest(url, kind, is_main_frame)
 
-        self.view.show()
 
-        self.app.exec_()
+def init_gui(application, port=5000, width=300, height=400,
+             window_title="PyFladesk", icon="appicon.png", argv=None):
+    if argv is None:
+        argv = sys.argv
 
-    def _run_flask(self, host, port, debug=False, using_win32=False):
-        print(host)
-        if using_win32:
-            import pythoncom
-            pythoncom.CoInitialize()
-        self.flask_app.run(debug=debug, host=host, port=port, use_reloader=False)
+    # Application Level
+    qtapp = QtWidgets.QApplication(argv)
+    webapp = ApplicationThread(application, port)
+    webapp.start()
+    qtapp.aboutToQuit.connect(webapp.terminate)
+
+    # Main Window Level
+    window = QtWidgets.QMainWindow()
+    window.resize(width, height)
+    window.setWindowTitle(window_title)
+    window.setWindowIcon(QtGui.QIcon(icon))
+
+    # WebView Level
+    webView = QtWebEngineWidgets.QWebEngineView(window)
+    window.setCentralWidget(webView)
+
+    # WebPage Level
+    page = WebPage('http://localhost:{}'.format(port))
+    page.home()
+    webView.setPage(page)
+
+    window.show()
+    return qtapp.exec_()
