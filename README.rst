@@ -7,7 +7,7 @@ Installation:
 -------------
 ::
 
-    pip install git+git://github.com/widdershin/flask-desktop.git
+    pip install git+git://github.com/CorneHQ/flask-desktop.git
 
 I'd like to have flask-desktop available on pip, but currently don't have the time and headspace to make that happen. If you want this to happen, please do it and I'll add you as a collaborator to this repo.
 
